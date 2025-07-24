@@ -19,9 +19,7 @@ This system merges content-based filtering with semantic similarity via Hugging 
 
 - Keyword-based title search using pandas filtering
 - Dynamic dropdown of matching titles
-- Similar movie recommendations powered by custom similarity logic
-- runcated overviews for cleaner display
-- Styled and centered UI components (button customization included)
+- Similar movie recommendations powered by dual-model movie recommender system
 
 ---
 ## ⚙️ Overview
@@ -31,11 +29,24 @@ The recommender combines:
    - Trained on vectorized movie genres and overviews
    - Enriched with numeric features like vote average and popularity
    - Scaled and indexed via `sklearn.NearestNeighbors`
+   ```python
+      X_scaled = scaler.fit_transform(KNN_features_db)
+      knn_model = NearestNeighbors(n_neighbors=5, algorithm='auto')
+      knn_model.fit(X_scaled)
+      distances, indices = knn_model.kneighbors(X_scaled)
 
 2. **Transformer Model**:
    - Sentence embeddings extracted from `all-MiniLM-L6-v2` via `transformers.pipeline("feature-extraction")`
    - Embeddings cached and reused across sessions
    - Cosine similarity used to compare semantic meaning
+   ```python
+      feature_extractor = pipeline("feature-extraction",
+                             model="sentence-transformers/all-MiniLM-L6-v2",
+                             device_map="auto")
+      embeddings = series.progress_apply(lambda x: feature_extractor(x)[0][0])
+      embeddings_movies = np.vstack(embeddings)
+      m_embedding = np.array(embeddings[movie_index]).reshape(1, -1)
+      similarity_scores = cosine_similarity(m_embedding, embeddings)
 
 ## 🧪 Feature Engineering Pipeline
 Extensive feature extraction was performed to support dual-model recommendations:
@@ -55,11 +66,4 @@ Extensive feature extraction was performed to support dual-model recommendations
 ```bash
 git clone https://github.com/your-username/movie-finder-gradio.git
 cd movie-finder-gradio
-
-
-
 ---
-
-
-
-
